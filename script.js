@@ -9,7 +9,6 @@ function showError(message) {
 const inputText = document.querySelector('#inputText input');
 const addButton = document.querySelector('#inputText button');
 const todoListElement = document.querySelector('#list');
-const token = localStorage.getItem('token');
 const workNumElement = document.querySelector('.todoList_statistics p');
 
 let isCreating = false;
@@ -72,14 +71,50 @@ function fetchTodos() {
     });
 }
 
-if (!token) {
-  window.location.href = '#loginPage';
-} else {
+async function checkAuth() {
+  const token = localStorage.getItem('token');
+
+  if (!token) return false;
+
+  try {
+    const res = await fetch('https://todolist-api.hexschool.io/users/checkout', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token,
+      },
+    });
+
+    if (!res.ok) {
+      localStorage.removeItem('token');
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+// ⭐ Todo 頁面登入驗證
+(async () => {
+  const isAuthed = await checkAuth();
+
+  if (!isAuthed) {
+    // eslint-disable-next-line no-alert
+    alert('登入已失效，請重新登入');
+    window.location.href = '#loginPage';
+    return;
+  }
+
   fetchTodos().catch((error) => {
     console.error('API 發生錯誤', error);
-    showError('讀取失敗，請確認伺服器是否啟動（json-server / port 3000）');
+    showError(
+      '讀取失敗，請確認伺服器是否啟動（json-server / port 3000）',
+    );
   });
-}
+})();
 
 function createTodo(payload) {
   return fetch('http://localhost:3000/todos', {
@@ -228,3 +263,49 @@ tabs.forEach((tab) => {
     render();
   });
 });
+
+const signEmail = document.querySelector('#signEmail');
+const signName = document.querySelector('#signName');
+const signPwd = document.querySelector('#signPwd');
+const checkPwd = document.querySelector('#checkPwd');
+const signUpBtn = document.querySelector('#signUpBtn');
+
+if (signUpBtn && signEmail && signName && signPwd && checkPwd) {
+  signUpBtn.addEventListener('click', async () => {
+    const email = signEmail.value.trim();
+    const nickname = signName.value.trim();
+    const password = signPwd.value.trim();
+    const password2 = checkPwd.value.trim();
+
+    if (!email || !nickname || !password || !password2) {
+      alert('請完整填寫註冊資料');
+      return;
+    }
+
+    if (password !== password2) {
+      alert('兩次密碼不一致');
+      return;
+    }
+
+    try {
+      const res = await fetch('https://todolist-api.hexschool.io/users/sign_up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, nickname }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || '註冊失敗');
+        return;
+      }
+
+      alert('註冊成功，請登入');
+      window.location.href = '#loginPage';
+    } catch (err) {
+      console.error(err);
+      alert('系統錯誤，請稍後再試');
+    }
+  });
+}

@@ -6,6 +6,7 @@
     "es2021": true
   },
   "rules": {
+    "no-alert" : "off",
     "no-console": "off"
   }
 }
