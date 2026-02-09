@@ -20,7 +20,7 @@
   <body>
     <!-- login_page -->
     <div id="loginPage" class="bg-yellow">
-      <div class="conatiner loginPage vhContainer">
+      <div class="container loginPage vhContainer">
         <div class="side">
           <a href="#"
             ><img class="logoImg" src="./assets/todo list icon.png" alt=""
@@ -63,7 +63,7 @@
 
     <!-- sign up -->
     <div id="signUpPage" class="bg-yellow">
-      <div class="conatiner signUpPage vhContainer">
+      <div class="container signUpPage vhContainer">
         <div class="side">
           <a href="#"
             ><img class="logoImg" src="./assets/todo-list-icon.png" alt=""
@@ -126,12 +126,14 @@
         <h1><a href="#">ONLINE TODO LIST</a></h1>
         <ul>
           <li class="todo_sm">
-            <a href="#"><span>代辦</span></a>
+            <button id="logoutBtn" type="button"><span>代辦</span></button>
           </li>
-          <li><a href="#loginPage">登出</a></li>
+          <li>
+            <button id="logoutBtn" type="button">登出</button>
+          </li>
         </ul>
       </nav>
-      <div class="conatiner todoListPage vhContainer">
+      <div class="container todoListPage vhContainer">
         <div class="todoList_Content">
           <div class="inputBox" id="inputText">
             <input type="text" placeholder="請輸入待辦事項" />

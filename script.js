@@ -16,13 +16,11 @@ let currentStatus = 'all';
 
 function setCreatingLoading(isLoading) {
   isCreating = isLoading;
-  addButton.disabled = isLoading;
 
-  if (isLoading) {
-    addButton.textContent = '處理中...';
-  } else {
-    addButton.textContent = '新增';
-  }
+  if (!addButton) return;
+
+  addButton.disabled = isLoading;
+  addButton.textContent = isLoading ? '處理中...' : '新增';
 }
 
 // render 渲染
@@ -99,6 +97,9 @@ async function checkAuth() {
 
 // ⭐ Todo 頁面登入驗證
 (async () => {
+  const todoPage = document.querySelector('#todoListPage');
+  if (!todoPage) return;
+
   const isAuthed = await checkAuth();
 
   if (!isAuthed) {
@@ -162,8 +163,7 @@ function addItem(e) {
     });
 }
 
-addButton.addEventListener('click', addItem);
-
+if (addButton) addButton.addEventListener('click', addItem);
 // api delete
 
 function patchTodo(id, payload) {
@@ -242,36 +242,37 @@ function handleListClick(e) {
       });
   }
 }
-todoListElement.addEventListener('click', handleListClick);
+if (todoListElement) todoListElement.addEventListener('click', handleListClick);
 
 // 新增切換完成已完成標籤
 
 const tabs = document.querySelectorAll('#todoListTab a');
 
-tabs.forEach((tab) => {
-  tab.addEventListener('click', (e) => {
-    const targetTab = e.target.closest('a');
+if (tabs.length) {
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', (e) => {
+      const targetTab = e.target.closest('a');
+      if (!targetTab) return;
 
-    if (!targetTab) return;
+      e.preventDefault();
 
-    e.preventDefault();
+      tabs.forEach((item) => item.classList.remove('active'));
+      targetTab.classList.add('active');
 
-    tabs.forEach((item) => item.classList.remove('active'));
-    targetTab.classList.add('active');
-
-    currentStatus = targetTab.getAttribute('data-status');
-    render();
+      currentStatus = targetTab.getAttribute('data-status');
+      render();
+    });
   });
-});
+}
 
 const signEmail = document.querySelector('#signEmail');
 const signName = document.querySelector('#signName');
 const signPwd = document.querySelector('#signPwd');
 const checkPwd = document.querySelector('#checkPwd');
-const signUpBtn = document.querySelector('#signUpBtn');
+const signBtn = document.querySelector('#signBtn');
 
-if (signUpBtn && signEmail && signName && signPwd && checkPwd) {
-  signUpBtn.addEventListener('click', async () => {
+if (signBtn && signEmail && signName && signPwd && checkPwd) {
+  signBtn.addEventListener('click', async () => {
     const email = signEmail.value.trim();
     const nickname = signName.value.trim();
     const password = signPwd.value.trim();
@@ -309,3 +310,59 @@ if (signUpBtn && signEmail && signName && signPwd && checkPwd) {
     }
   });
 }
+
+const loginEmail = document.querySelector('#loginEmail');
+const loginPwd = document.querySelector('#loginPwd');
+const loginBtn = document.querySelector('#loginBtn');
+
+if (loginBtn && loginEmail && loginPwd) {
+  loginBtn.addEventListener('click', async () => {
+    const email = loginEmail.value.trim();
+    const password = loginPwd.value.trim();
+    if (!email || !password) {
+      alert('請輸入完整登入資訊');
+      return;
+    }
+    try {
+      const res = await fetch('https://todolist-api.hexschool.io/users/sign_in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || '登入失敗');
+        return;
+      }
+      localStorage.setItem('token', data.token);
+
+      window.location.href = '#todoListPage';
+    } catch (err) {
+      console.error(err);
+      alert('登入錯誤，請稍後再試');
+    }
+  });
+}
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('#logoutBtn');
+  if (!btn) return;
+
+  const token = localStorage.getItem('token');
+
+  try {
+    await fetch('https://todolist-api.hexschool.io/users/sign_out', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token || '',
+      },
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    localStorage.removeItem('token');
+    window.location.href = '#loginPage';
+  }
+});
