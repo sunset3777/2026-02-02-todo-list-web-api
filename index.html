@@ -34,7 +34,7 @@
             <input
               class="formControls_input"
               type="text"
-              id="email"
+              id="loginEmail"
               name="email"
               placeholder="請輸入 email"
               required
@@ -45,14 +45,14 @@
               class="formControls_input"
               type="password"
               name="pwd"
-              id="pwd"
+              id="loginPwd"
               placeholder="請輸入密碼"
               required
             />
             <input
+              id="loginBtn"
               class="formControls_btnSubmit"
               type="button"
-              onclick="javascript: location.href = '#todoListPage';"
               value="登入"
             />
             <a class="formControls_btnLink" href="#signUpPage">註冊帳號</a>
@@ -77,7 +77,7 @@
             <input
               class="formControls_input"
               type="text"
-              id="email"
+              id="signEmail"
               name="email"
               placeholder="請輸入 email"
               required
@@ -87,7 +87,7 @@
               class="formControls_input"
               type="text"
               name="name"
-              id="name"
+              id="signName"
               placeholder="請輸入您的暱稱"
             />
             <label class="formControls_label" for="pwd">密碼</label>
@@ -95,7 +95,7 @@
               class="formControls_input"
               type="password"
               name="pwd"
-              id="pwd"
+              id="signPwd"
               placeholder="請輸入密碼"
               required
             />
@@ -104,14 +104,13 @@
               class="formControls_input"
               type="password"
               name="pwd"
-              id="pwd"
+              id="checkPwd"
               placeholder="請再次輸入密碼"
               required
             />
             <input
               class="formControls_btnSubmit"
               type="button"
-              onclick="javascript: location.href = '#todoListPage';"
               value="註冊帳號"
             />
             <a class="formControls_btnLink" href="#loginPage">登入</a>

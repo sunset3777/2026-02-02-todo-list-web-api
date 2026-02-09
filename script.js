@@ -9,7 +9,9 @@ function showError(message) {
 const inputText = document.querySelector('#inputText input');
 const addButton = document.querySelector('#inputText button');
 const todoListElement = document.querySelector('#list');
+const token = localStorage.getItem('token');
 const workNumElement = document.querySelector('.todoList_statistics p');
+
 let isCreating = false;
 let currentStatus = 'all';
 
@@ -70,10 +72,14 @@ function fetchTodos() {
     });
 }
 
-fetchTodos().catch((error) => {
-  console.error('API 發生錯誤', error);
-  showError('讀取失敗，請確認伺服器是否啟動（json-server / port 3000）');
-});
+if (!token) {
+  window.location.href = '#loginPage';
+} else {
+  fetchTodos().catch((error) => {
+    console.error('API 發生錯誤', error);
+    showError('讀取失敗，請確認伺服器是否啟動（json-server / port 3000）');
+  });
+}
 
 function createTodo(payload) {
   return fetch('http://localhost:3000/todos', {
