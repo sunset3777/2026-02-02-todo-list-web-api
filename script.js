@@ -27,6 +27,8 @@ function setCreatingLoading(isLoading) {
 function render() {
   let template = '';
   let pendingCount = 0;
+  if (!todoListElement) return;
+
   todoData.forEach((item, index) => {
     if (!item.checked) {
       pendingCount += 1;
@@ -55,17 +57,27 @@ function render() {
 }
 
 function fetchTodos() {
-  return fetch('http://localhost:3000/todos')
-    .then((response) => response.json())
+  const token = localStorage.getItem('token');
+  if (!token) return Promise.reject(new Error('No token'));
+
+  return fetch('https://todolist-api.hexschool.io/todos', {
+    method: 'GET',
+    headers: {
+      Authorization: token,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error(`GET failed: ${res.status}`);
+      return res.json();
+    })
     .then((data) => {
-      todoData = data.map((item) => ({
+      todoData = (data.data || []).map((item) => ({
         id: item.id,
         content: item.content,
-        completed: item.completed,
-        checked: item.completed,
+        checked: item.status === 'completed',
       }));
       render();
-      return data;
+      return todoData;
     });
 }
 
@@ -78,7 +90,6 @@ async function checkAuth() {
     const res = await fetch('https://todolist-api.hexschool.io/users/checkout', {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: token,
       },
     });
@@ -112,15 +123,20 @@ async function checkAuth() {
   fetchTodos().catch((error) => {
     console.error('API 發生錯誤', error);
     showError(
-      '讀取失敗，請確認伺服器是否啟動（json-server / port 3000）',
+      '讀取失敗，請確認登入狀態或網路連線',
     );
   });
 })();
 
 function createTodo(payload) {
-  return fetch('http://localhost:3000/todos', {
+  const token = localStorage.getItem('token');
+
+  return fetch('https://todolist-api.hexschool.io/todos', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
     body: JSON.stringify(payload),
   });
 }
@@ -134,7 +150,6 @@ function addItem(e) {
 
   const payload = {
     content: inputText.value.trim(),
-    completed: false,
   };
 
   setCreatingLoading(true);
@@ -145,18 +160,9 @@ function addItem(e) {
       inputText.value = '';
       return fetchTodos();
     })
-    .then((data) => {
-      todoData = data.map((item) => ({
-        id: item.id,
-        content: item.content,
-        completed: item.completed,
-        checked: item.completed,
-      }));
-      render();
-    })
     .catch((err) => {
       console.error(err);
-      showError('新增失敗，請確認伺服器是否啟動（json-server / port 3000）');
+      showError('新增失敗，請確認登入狀態或網路連線');
     })
     .finally(() => {
       setCreatingLoading(false);
@@ -166,17 +172,23 @@ function addItem(e) {
 if (addButton) addButton.addEventListener('click', addItem);
 // api delete
 
-function patchTodo(id, payload) {
-  return fetch(`http://localhost:3000/todos/${id}`, {
+function patchTodo(id) {
+  const token = localStorage.getItem('token');
+  return fetch(`https://todolist-api.hexschool.io/todos/${id}/toggle`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    headers: {
+      Authorization: token,
+    },
   });
 }
 
 function deleteTodo(id) {
-  return fetch(`http://localhost:3000/todos/${id}`, {
+  const token = localStorage.getItem('token');
+  return fetch(`https://todolist-api.hexschool.io/todos/${id}`, {
     method: 'DELETE',
+    headers: {
+      Authorization: token,
+    },
   });
 }
 
@@ -200,18 +212,9 @@ function handleListClick(e) {
         if (!res.ok) throw new Error(`DELETE failed: ${res.status}`);
         return fetchTodos();
       })
-      .then((data) => {
-        todoData = data.map((item) => ({
-          id: item.id,
-          content: item.content,
-          completed: item.completed,
-          checked: item.completed,
-        }));
-        render();
-      })
       .catch((error) => {
         console.error('API 發生錯誤', error);
-        showError('刪除失敗，請確認伺服器是否啟動（json-server / port 3000）');
+        showError('刪除失敗，請確認登入狀態或網路連線');
       });
 
     return;
@@ -219,25 +222,15 @@ function handleListClick(e) {
 
   if (checkbox) {
     const { id } = checkbox.dataset;
-    patchTodo(id, { completed: checkbox.checked })
+    patchTodo(id)
       .then((res) => {
         if (!res.ok) throw new Error(`PATCH failed: ${res.status}`);
         return fetchTodos();
       })
-      .then((data) => {
-        todoData = data.map((item) => ({
-          id: item.id,
-          content: item.content,
-          completed: item.completed,
-          checked: item.completed,
-        }));
-        render();
-      })
-
       .catch((err) => {
         console.error(err);
         showError(
-          '更新狀態失敗，請確認伺服器是否啟動（json-server / port 3000）',
+          '更新狀態失敗，請確認登入狀態或網路連線',
         );
       });
   }
