@@ -13,6 +13,13 @@ const workNumElement = document.querySelector('.todoList_statistics p');
 
 let isCreating = false;
 let currentStatus = 'all';
+let editingId = null;
+let editingValue = '';
+let isUpdating = false;
+
+function setUpdatingLoading(isLoading) {
+  isUpdating = isLoading;
+}
 
 function setCreatingLoading(isLoading) {
   isCreating = isLoading;
@@ -30,25 +37,40 @@ function render() {
   if (!todoListElement) return;
 
   todoData.forEach((item, index) => {
-    if (!item.checked) {
-      pendingCount += 1;
-    }
+    if (!item.checked) pendingCount += 1;
 
     if (currentStatus === 'pending' && item.checked) return;
     if (currentStatus === 'completed' && !item.checked) return;
 
     const isChecked = item.checked ? 'checked' : '';
+    const isEditing = String(item.id) === String(editingId);
+
+    // 避免 value 中有雙引號導致 HTML 壞掉
+    const safeEditingValue = String(editingValue).replace(/"/g, '&quot;');
 
     template += `<li>
-                            <label class="todoList_label">
-                                <input class="todoList_input" type="checkbox" ${isChecked} data-index="${index}" data-id="${item.id}">
-                                <span>${item.content}</span>
-                            </label>
-                        <button type="button" data-index="${index}">
-                            <i class="fa-solid fa-times" data-action="delete" data-id="${item.id}"></i>
-                        </button>
-                        </li>`;
+      <label class="todoList_label">
+        <input class="todoList_input" type="checkbox" ${isChecked} data-id="${item.id}">
+        ${
+          isEditing
+            ? `<input class="todoList_editInput" type="text" value="${safeEditingValue}" data-action="edit-input" data-id="${item.id}">`
+            : `<span class="todoList_content" data-action="start-edit" data-id="${item.id}">${item.content}</span>`
+        }
+      </label>
+
+      ${
+        isEditing
+          ? `<button type="button" data-action="save-edit" data-id="${item.id}">儲存</button>
+             <button type="button" data-action="cancel-edit" data-id="${item.id}">取消</button>`
+          : ''
+      }
+
+      <button type="button" data-index="${index}">
+        <i class="fa-solid fa-times" data-action="delete" data-id="${item.id}"></i>
+      </button>
+    </li>`;
   });
+
   todoListElement.innerHTML = template;
 
   if (workNumElement) {
@@ -192,20 +214,80 @@ function deleteTodo(id) {
   });
 }
 
+function updateTodo(id, payload) {
+  const token = localStorage.getItem('token');
+
+  return fetch(`https://todolist-api.hexschool.io/todos/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
 // 新增刪除功能
 
 function handleListClick(e) {
+  const startEdit = e.target.closest('[data-action="start-edit"]');
+  const saveEdit = e.target.closest('[data-action="save-edit"]');
+  const cancelEdit = e.target.closest('[data-action="cancel-edit"]');
+
   const deleteIcon = e.target.closest('[data-action="delete"]');
   const checkbox = e.target.closest('.todoList_input[data-id]');
 
-  if (deleteIcon) {
-    const { id } = deleteIcon.dataset;
+  if (startEdit) {
+    const { id } = startEdit.dataset;
     const target = todoData.find((t) => String(t.id) === String(id));
-
     if (!target) return;
-    if (!target.checked) {
+
+    editingId = id;
+    editingValue = target.content;
+    render();
+    return;
+  }
+
+  if (cancelEdit) {
+    editingId = null;
+    editingValue = '';
+    render();
+    return;
+  }
+
+  if (saveEdit) {
+    if (isUpdating) return;
+
+    const { id } = saveEdit.dataset;
+    const newValue = editingValue.trim();
+
+    if (!newValue) {
+      showError('內容不可為空');
       return;
     }
+
+    setUpdatingLoading(true);
+
+    updateTodo(id, { content: newValue })
+      .then((res) => {
+        if (!res.ok) throw new Error(`PUT failed: ${res.status}`);
+        editingId = null;
+        editingValue = '';
+        return fetchTodos();
+      })
+      .catch((err) => {
+        console.error(err);
+        showError('編輯失敗，請確認登入狀態或網路連線');
+      })
+      .finally(() => {
+        setUpdatingLoading(false);
+      });
+
+    return;
+  }
+
+  if (deleteIcon) {
+    const { id } = deleteIcon.dataset;
 
     deleteTodo(id)
       .then((res) => {
@@ -222,6 +304,7 @@ function handleListClick(e) {
 
   if (checkbox) {
     const { id } = checkbox.dataset;
+
     patchTodo(id)
       .then((res) => {
         if (!res.ok) throw new Error(`PATCH failed: ${res.status}`);
@@ -229,13 +312,20 @@ function handleListClick(e) {
       })
       .catch((err) => {
         console.error(err);
-        showError(
-          '更新狀態失敗，請確認登入狀態或網路連線',
-        );
+        showError('更新狀態失敗，請確認登入狀態或網路連線');
       });
   }
 }
+
 if (todoListElement) todoListElement.addEventListener('click', handleListClick);
+
+if (todoListElement) {
+  todoListElement.addEventListener('input', (e) => {
+    const editInput = e.target.closest('[data-action="edit-input"]');
+    if (!editInput) return;
+    editingValue = editInput.value;
+  });
+}
 
 // 新增切換完成已完成標籤
 
