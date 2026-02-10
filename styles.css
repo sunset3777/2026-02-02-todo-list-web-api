@@ -96,13 +96,13 @@ img {
   background-image: linear-gradient(175deg, #FFD370 60%, #fff 40%);
 }
 
-.conatiner {
+.container {
   margin: 0 auto;
   padding: 87px 32px;
 }
 
 @media (max-width: 576px) {
-  .conatiner {
+  .container {
     padding: 18px 32px;
   }
 }
@@ -166,23 +166,23 @@ nav ul {
   }
 }
 
-nav ul a {
+nav ul button {
   text-decoration: none;
   color: #333333;
   margin-left: 24px;
 }
 
 @media (max-width: 576px) {
-  nav ul a {
+  nav ul button {
     margin-left: 0;
   }
 }
 
-nav ul a:hover {
+nav ul button:hover {
   color: #d87355;
 }
 
-nav ul a span {
+nav ul button span {
   font-weight: bold;
 }
 
@@ -280,7 +280,7 @@ nav ul a span {
   font-size: 1rem;
 }
 
-.formControls a {
+.formControls button {
   text-decoration: none;
 }
 

@@ -20,7 +20,7 @@
   <body>
     <!-- login_page -->
     <div id="loginPage" class="bg-yellow">
-      <div class="conatiner loginPage vhContainer">
+      <div class="container loginPage vhContainer">
         <div class="side">
           <a href="#"
             ><img class="logoImg" src="./assets/todo list icon.png" alt=""
@@ -34,7 +34,7 @@
             <input
               class="formControls_input"
               type="text"
-              id="email"
+              id="loginEmail"
               name="email"
               placeholder="請輸入 email"
               required
@@ -45,14 +45,14 @@
               class="formControls_input"
               type="password"
               name="pwd"
-              id="pwd"
+              id="loginPwd"
               placeholder="請輸入密碼"
               required
             />
             <input
+              id="loginBtn"
               class="formControls_btnSubmit"
               type="button"
-              onclick="javascript: location.href = '#todoListPage';"
               value="登入"
             />
             <a class="formControls_btnLink" href="#signUpPage">註冊帳號</a>
@@ -63,7 +63,7 @@
 
     <!-- sign up -->
     <div id="signUpPage" class="bg-yellow">
-      <div class="conatiner signUpPage vhContainer">
+      <div class="container signUpPage vhContainer">
         <div class="side">
           <a href="#"
             ><img class="logoImg" src="./assets/todo-list-icon.png" alt=""
@@ -77,7 +77,7 @@
             <input
               class="formControls_input"
               type="text"
-              id="email"
+              id="signEmail"
               name="email"
               placeholder="請輸入 email"
               required
@@ -87,7 +87,7 @@
               class="formControls_input"
               type="text"
               name="name"
-              id="name"
+              id="signName"
               placeholder="請輸入您的暱稱"
             />
             <label class="formControls_label" for="pwd">密碼</label>
@@ -95,7 +95,7 @@
               class="formControls_input"
               type="password"
               name="pwd"
-              id="pwd"
+              id="signPwd"
               placeholder="請輸入密碼"
               required
             />
@@ -104,14 +104,14 @@
               class="formControls_input"
               type="password"
               name="pwd"
-              id="pwd"
+              id="checkPwd"
               placeholder="請再次輸入密碼"
               required
             />
             <input
+              id="signBtn"
               class="formControls_btnSubmit"
               type="button"
-              onclick="javascript: location.href = '#todoListPage';"
               value="註冊帳號"
             />
             <a class="formControls_btnLink" href="#loginPage">登入</a>
@@ -126,12 +126,14 @@
         <h1><a href="#">ONLINE TODO LIST</a></h1>
         <ul>
           <li class="todo_sm">
-            <a href="#"><span>代辦</span></a>
+            <button id="logoutBtn" type="button"><span>代辦</span></button>
           </li>
-          <li><a href="#loginPage">登出</a></li>
+          <li>
+            <button id="logoutBtn" type="button">登出</button>
+          </li>
         </ul>
       </nav>
-      <div class="conatiner todoListPage vhContainer">
+      <div class="container todoListPage vhContainer">
         <div class="todoList_Content">
           <div class="inputBox" id="inputText">
             <input type="text" placeholder="請輸入待辦事項" />
